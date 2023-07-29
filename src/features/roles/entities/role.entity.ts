@@ -1,9 +1,20 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { BaseEntity } from 'src/features/base/base.entity';
 
 @Entity({ name: 'roles' })
 export class Role extends BaseEntity {
+  @PrimaryGeneratedColumn({ name: 'role_id' })
+  id: number;
+
   @Column({
     nullable: false,
     default: '',

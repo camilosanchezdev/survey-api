@@ -10,7 +10,7 @@ import { RoleEnum } from 'src/common/enums/role.enum';
 import { Roles } from 'src/common/decorators/role.decorator';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 
-// @UseGuards(AuthGuard('jwt'), RolesGuard)
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('users')
 export class UsersController extends BaseController<User> {
   constructor(private readonly usersService: UsersService) {

@@ -6,6 +6,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
@@ -13,6 +14,9 @@ import { BaseEntity } from 'src/features/base/base.entity';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
+  @PrimaryGeneratedColumn({ name: 'user_id' })
+  id: number;
+
   @Column({
     nullable: false,
     unique: true,
@@ -23,11 +27,6 @@ export class User extends BaseEntity {
     nullable: false,
   })
   password: string;
-
-  @Column({
-    nullable: true,
-  })
-  hash: string;
 
   @Column({ type: 'int', name: 'role_id' })
   roleId: number;
