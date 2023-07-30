@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { BaseService } from '../base/base.service';
 import { Survey } from './entities/survey.entity';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
@@ -53,10 +53,27 @@ export class SurveysService extends BaseService<Survey> {
       return { success: false, error };
     }
   }
+
   async createAsActive(body: CreateSurveyInputDto, customerId: number): Promise<BaseResponse> {
     return this.createCustom(body, customerId, SurveyStatusEnum.ACTIVE);
   }
+
   async createAsDraft(body: CreateSurveyInputDto, customerId: number): Promise<BaseResponse> {
     return this.createCustom(body, customerId, SurveyStatusEnum.DRAFT);
+  }
+
+  async markAsActive(surveyId: number, customerId: number): Promise<BaseResponse> {
+    try {
+      const survey = await this.get(surveyId);
+
+      if (survey.customerId !== customerId) throw new UnauthorizedException();
+
+      survey.surveyStatusId = SurveyStatusEnum.ACTIVE;
+      await this.update(surveyId, survey);
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error };
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { BaseController } from '../base/base.controller';
 import { Survey } from './entities/survey.entity';
@@ -27,5 +27,11 @@ export class SurveysController extends BaseController<Survey> {
   @Post('draft')
   createAsDraft(@Body() req: CreateSurveyInputDto, @CurrentUser() user: IToken): Promise<any> {
     return this.surveysService.createAsDraft(req, Number(user.sub));
+  }
+
+  @Roles(RoleEnum.CUSTOMER)
+  @Put(':id/active')
+  markAsActive(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
+    return this.surveysService.markAsActive(id, Number(user.sub));
   }
 }
