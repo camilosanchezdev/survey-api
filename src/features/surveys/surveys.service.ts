@@ -9,6 +9,7 @@ import { SurveyStatusEnum } from 'src/common/enums/survey-status.enum';
 import { SurveyQuestionsService } from '../survey-questions/survey-questions.service';
 import { Transactional } from 'typeorm-transactional';
 import { SurveyAnswersService } from '../survey-answers/survey-answers.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class SurveysService extends BaseService<Survey> {
@@ -31,6 +32,7 @@ export class SurveysService extends BaseService<Survey> {
         description: body.description,
         customerId,
         surveyStatusId,
+        ...(surveyStatusId === SurveyStatusEnum.ACTIVE && { publicLink: this.generatePublicLink() }),
       });
       for (let index = 0; index < body.surveyQuestions.length; index++) {
         const question = body.surveyQuestions[index];
@@ -75,6 +77,8 @@ export class SurveysService extends BaseService<Survey> {
 
       survey.surveyStatusId = surveyStatusId;
 
+      if (surveyStatusId === SurveyStatusEnum.ACTIVE) survey.publicLink = this.generatePublicLink();
+
       await this.update(surveyId, survey);
 
       if (permanentlyDeleted) {
@@ -102,5 +106,9 @@ export class SurveysService extends BaseService<Survey> {
 
   async markAsPermanentlyDeleted(surveyId: number, customerId: number): Promise<BaseResponse> {
     return this.updateStatus(surveyId, customerId, SurveyStatusEnum.DELETED, true);
+  }
+
+  generatePublicLink(): string {
+    return uuidv4();
   }
 }
