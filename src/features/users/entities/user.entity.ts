@@ -6,11 +6,13 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { BaseEntity } from 'src/features/base/base.entity';
+import { Customer } from 'src/features/customers/entities/customer.entity';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
@@ -35,8 +37,8 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'role_id' })
   role: Promise<Role>;
 
-  //   @OneToMany(() => Post, (post) => post.user, { lazy: true })
-  //   posts: Promise<Post[]>;
+  @OneToOne(() => Customer, (customer) => customer.user, { lazy: true })
+  customer?: Promise<Customer>;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt?: Date;
