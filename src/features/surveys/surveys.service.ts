@@ -24,13 +24,13 @@ export class SurveysService extends BaseService<Survey> {
   }
 
   @Transactional()
-  async createCustom(body: CreateSurveyInputDto, customerId: number): Promise<BaseResponse> {
+  async createCustom(body: CreateSurveyInputDto, customerId: number, surveyStatusId: number): Promise<BaseResponse> {
     try {
       const surveyId = await this.create({
         title: body.title,
         description: body.description,
         customerId,
-        surveyStatusId: SurveyStatusEnum.ACTIVE,
+        surveyStatusId,
       });
       for (let index = 0; index < body.surveyQuestions.length; index++) {
         const question = body.surveyQuestions[index];
@@ -52,5 +52,11 @@ export class SurveysService extends BaseService<Survey> {
     } catch (error) {
       return { success: false, error };
     }
+  }
+  async createAsActive(body: CreateSurveyInputDto, customerId: number): Promise<BaseResponse> {
+    return this.createCustom(body, customerId, SurveyStatusEnum.ACTIVE);
+  }
+  async createAsDraft(body: CreateSurveyInputDto, customerId: number): Promise<BaseResponse> {
+    return this.createCustom(body, customerId, SurveyStatusEnum.DRAFT);
   }
 }

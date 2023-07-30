@@ -20,6 +20,12 @@ export class SurveysController extends BaseController<Survey> {
   @Roles(RoleEnum.CUSTOMER)
   @Post()
   createCustom(@Body() req: CreateSurveyInputDto, @CurrentUser() user: IToken): Promise<any> {
-    return this.surveysService.createCustom(req, Number(user.sub));
+    return this.surveysService.createAsActive(req, Number(user.sub));
+  }
+
+  @Roles(RoleEnum.CUSTOMER)
+  @Post('draft')
+  createAsDraft(@Body() req: CreateSurveyInputDto, @CurrentUser() user: IToken): Promise<any> {
+    return this.surveysService.createAsDraft(req, Number(user.sub));
   }
 }
