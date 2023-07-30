@@ -18,7 +18,7 @@ export class SurveyAnswer extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'survey_answer_id' })
   id: number;
 
-  @Column({ nullable: false, default: '' })
+  @Column({ nullable: false })
   name: string;
 
   @Column({ type: 'int', name: 'survey_question_id' })
