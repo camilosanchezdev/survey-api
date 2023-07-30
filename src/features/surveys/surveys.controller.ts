@@ -40,4 +40,16 @@ export class SurveysController extends BaseController<Survey> {
   markAsCompleted(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
     return this.surveysService.markAsCompleted(id, Number(user.sub));
   }
+
+  @Roles(RoleEnum.CUSTOMER)
+  @Put(':id/deleted')
+  markAsDeleted(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
+    return this.surveysService.markAsDeleted(id, Number(user.sub));
+  }
+
+  @Roles(RoleEnum.CUSTOMER)
+  @Put(':id/permanently-deleted')
+  markAsPermanentlyDeleted(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
+    return this.surveysService.markAsPermanentlyDeleted(id, Number(user.sub));
+  }
 }

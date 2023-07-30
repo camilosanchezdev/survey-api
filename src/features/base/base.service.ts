@@ -52,4 +52,14 @@ export class BaseService<T extends BaseEntity> implements IBaseService<T> {
       throw new BadGatewayException(error);
     }
   }
+
+  async delete(id: number, entity?: any): Promise<boolean> {
+    try {
+      const payload = entity ? entity : await this.get(id);
+      await this.genericRepository.softRemove(payload);
+      return true;
+    } catch (error) {
+      throw new BadGatewayException(error);
+    }
+  }
 }

@@ -62,14 +62,25 @@ export class SurveysService extends BaseService<Survey> {
     return this.createCustom(body, customerId, SurveyStatusEnum.DRAFT);
   }
 
-  async markAsActive(surveyId: number, customerId: number): Promise<BaseResponse> {
+  async updateStatus(
+    surveyId: number,
+    customerId: number,
+    surveyStatusId: number,
+    permanentlyDeleted = false,
+  ): Promise<BaseResponse> {
     try {
       const survey = await this.get(surveyId);
 
       if (survey.customerId !== customerId) throw new UnauthorizedException();
 
-      survey.surveyStatusId = SurveyStatusEnum.ACTIVE;
+      survey.surveyStatusId = surveyStatusId;
+
       await this.update(surveyId, survey);
+
+      if (permanentlyDeleted) {
+        const res = await this.delete(surveyId, survey);
+        return { success: res };
+      }
 
       return { success: true };
     } catch (error) {
@@ -77,18 +88,19 @@ export class SurveysService extends BaseService<Survey> {
     }
   }
 
+  async markAsActive(surveyId: number, customerId: number): Promise<BaseResponse> {
+    return this.updateStatus(surveyId, customerId, SurveyStatusEnum.ACTIVE);
+  }
+
   async markAsCompleted(surveyId: number, customerId: number): Promise<BaseResponse> {
-    try {
-      const survey = await this.get(surveyId);
+    return this.updateStatus(surveyId, customerId, SurveyStatusEnum.COMPLETED);
+  }
 
-      if (survey.customerId !== customerId) throw new UnauthorizedException();
+  async markAsDeleted(surveyId: number, customerId: number): Promise<BaseResponse> {
+    return this.updateStatus(surveyId, customerId, SurveyStatusEnum.DELETED);
+  }
 
-      survey.surveyStatusId = SurveyStatusEnum.COMPLETED;
-      await this.update(surveyId, survey);
-
-      return { success: true };
-    } catch (error) {
-      return { success: false, error };
-    }
+  async markAsPermanentlyDeleted(surveyId: number, customerId: number): Promise<BaseResponse> {
+    return this.updateStatus(surveyId, customerId, SurveyStatusEnum.DELETED, true);
   }
 }
