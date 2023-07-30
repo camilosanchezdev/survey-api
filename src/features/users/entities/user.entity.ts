@@ -5,7 +5,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -23,7 +22,7 @@ export class User extends BaseEntity {
     nullable: false,
     unique: true,
   })
-  username: string;
+  email: string;
 
   @Column({
     nullable: false,
