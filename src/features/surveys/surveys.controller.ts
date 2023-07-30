@@ -34,4 +34,10 @@ export class SurveysController extends BaseController<Survey> {
   markAsActive(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
     return this.surveysService.markAsActive(id, Number(user.sub));
   }
+
+  @Roles(RoleEnum.CUSTOMER)
+  @Put(':id/completed')
+  markAsCompleted(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
+    return this.surveysService.markAsCompleted(id, Number(user.sub));
+  }
 }

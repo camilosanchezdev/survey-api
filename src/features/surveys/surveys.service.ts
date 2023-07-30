@@ -76,4 +76,19 @@ export class SurveysService extends BaseService<Survey> {
       return { success: false, error };
     }
   }
+
+  async markAsCompleted(surveyId: number, customerId: number): Promise<BaseResponse> {
+    try {
+      const survey = await this.get(surveyId);
+
+      if (survey.customerId !== customerId) throw new UnauthorizedException();
+
+      survey.surveyStatusId = SurveyStatusEnum.COMPLETED;
+      await this.update(surveyId, survey);
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error };
+    }
+  }
 }
