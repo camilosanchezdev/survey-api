@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { BaseEntity } from 'src/features/base/base.entity';
+import { Survey } from 'src/features/surveys/entities/survey.entity';
 
 @Entity({ name: 'customers' })
 export class Customer extends BaseEntity {
@@ -38,8 +39,8 @@ export class Customer extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   user?: Promise<User>;
 
-  @OneToMany(() => User, (user) => user.role, { lazy: true })
-  users: Promise<User[]>;
+  @OneToMany(() => Survey, (survey) => survey.customer, { lazy: true })
+  surveys: Promise<Survey[]>;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt?: Date;
