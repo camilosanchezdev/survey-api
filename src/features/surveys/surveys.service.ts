@@ -22,6 +22,36 @@ export class SurveysService extends BaseService<Survey> {
     super(engineRepo);
   }
 
+  async getDetail(surveyId: number, customerId: number): Promise<Survey> {
+    try {
+      const res = await this.engineRepo.findOne({
+        where: { id: surveyId, customerId },
+        relations: ['surveyQuestions', 'surveyQuestions.surveyAnswers'],
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          publicLink: true,
+          surveyStatusId: true,
+          surveyQuestions: {
+            id: true,
+            name: true,
+            multiple: true,
+            surveyAnswers: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (!res) throw new NotFoundException();
+      return res;
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
+  }
+
   @Transactional()
   async createCustom(body: CreateSurveyInputDto, customerId: number, surveyStatusId: number): Promise<BaseResponse> {
     try {

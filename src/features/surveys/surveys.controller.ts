@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { BaseController } from '../base/base.controller';
 import { Survey } from './entities/survey.entity';
@@ -51,5 +51,11 @@ export class SurveysController extends BaseController<Survey> {
   @Put(':id/permanently-deleted')
   markAsPermanentlyDeleted(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
     return this.surveysService.markAsPermanentlyDeleted(id, Number(user.sub));
+  }
+
+  @Roles(RoleEnum.CUSTOMER)
+  @Get(':id')
+  getDetail(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
+    return this.surveysService.getDetail(id, Number(user.sub));
   }
 }
