@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { BaseService } from '../base/base.service';
 import { Survey } from './entities/survey.entity';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
@@ -16,8 +16,6 @@ export class SurveysService extends BaseService<Survey> {
   constructor(
     @InjectRepository(Survey)
     private readonly engineRepo: Repository<Survey>,
-
-    @InjectDataSource() private dataSource: DataSource,
     private readonly surveyQuestionsService: SurveyQuestionsService,
     private readonly surveyAnswersService: SurveyAnswersService,
   ) {
@@ -110,5 +108,15 @@ export class SurveysService extends BaseService<Survey> {
 
   generatePublicLink(): string {
     return uuidv4();
+  }
+  async getByPublicLink(publicLink: string): Promise<Survey> {
+    try {
+      const res = await this.engineRepo.findOne({ where: { publicLink } });
+
+      if (!res) throw new NotFoundException();
+      return res;
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
   }
 }

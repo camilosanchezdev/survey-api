@@ -10,5 +10,6 @@ import { SurveyAnswersModule } from '../survey-answers/survey-answers.module';
   imports: [TypeOrmModule.forFeature([Survey]), SurveyQuestionsModule, SurveyAnswersModule],
   controllers: [SurveysController],
   providers: [SurveysService],
+  exports: [SurveysService],
 })
 export class SurveysModule {}
