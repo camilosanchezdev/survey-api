@@ -33,7 +33,7 @@ export class SurveyResponseQuestion extends BaseEntity {
   @JoinColumn({ name: 'survey_response_id' })
   surveyResponse: Promise<SurveyResponse>;
 
-  @OneToMany(() => SurveyResponseAnswer, (surveyResponseAnswer) => surveyResponseAnswer.surveyAnswer, {
+  @OneToMany(() => SurveyResponseAnswer, (surveyResponseAnswer) => surveyResponseAnswer.surveyResponseQuestion, {
     lazy: true,
   })
   surveyResponseAnswers: Promise<SurveyResponseAnswer[]>;

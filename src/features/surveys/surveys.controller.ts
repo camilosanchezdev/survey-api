@@ -58,4 +58,10 @@ export class SurveysController extends BaseController<Survey> {
   getDetail(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
     return this.surveysService.getDetail(id, Number(user.sub));
   }
+
+  @Roles(RoleEnum.CUSTOMER)
+  @Get(':id/report')
+  getReport(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
+    return this.surveysService.getReport(id, Number(user.sub));
+  }
 }
