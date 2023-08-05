@@ -10,6 +10,8 @@ import { SurveyQuestionsService } from '../survey-questions/survey-questions.ser
 import { Transactional } from 'typeorm-transactional';
 import { SurveyAnswersService } from '../survey-answers/survey-answers.service';
 import { v4 as uuidv4 } from 'uuid';
+import { IBaseQuery } from '../base/base-query.interface';
+import { BaseListResponse } from '../base/base-list.response';
 
 @Injectable()
 export class SurveysService extends BaseService<Survey> {
@@ -20,6 +22,30 @@ export class SurveysService extends BaseService<Survey> {
     private readonly surveyAnswersService: SurveyAnswersService,
   ) {
     super(engineRepo);
+  }
+  async getList(customerId: number, query: IBaseQuery): Promise<BaseListResponse<Survey>> {
+    console.log('query', query);
+
+    const take = query.take || 10;
+    const skip = query.skip || 0;
+    const statusId = query.filters;
+
+    try {
+      const conditions = { customerId, ...(statusId && { surveyStatusId: Number(statusId) }) };
+      const total = await this.engineRepo.count({ where: conditions });
+      const res = await this.engineRepo.find({
+        where: conditions,
+        select: ['id', 'title', 'description', 'surveyStatusId', 'createdAt'],
+        take,
+        skip,
+        order: { createdAt: 'DESC' },
+      });
+
+      if (!res) throw new NotFoundException();
+      return { totalRecords: total, data: res };
+    } catch (error) {
+      throw new NotFoundException(error);
+    }
   }
 
   async getDetail(surveyId: number, customerId: number): Promise<Survey> {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { BaseController } from '../base/base.controller';
 import { Survey } from './entities/survey.entity';
@@ -9,12 +9,24 @@ import { Roles } from 'src/common/decorators/role.decorator';
 import { CreateSurveyInputDto } from './dtos/create-survey-input.dto';
 import { IToken } from 'src/auth/interfaces/token.interface';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { IBaseQuery } from '../base/base-query.interface';
 
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('surveys')
 export class SurveysController extends BaseController<Survey> {
   constructor(private readonly surveysService: SurveysService) {
     super(surveysService);
+  }
+  @Roles(RoleEnum.CUSTOMER)
+  @Get()
+  getList(@CurrentUser() user: IToken, @Query() query?: IBaseQuery): Promise<any> {
+    return this.surveysService.getList(Number(user.sub), query);
+  }
+
+  @Roles(RoleEnum.CUSTOMER)
+  @Get(':id')
+  getDetail(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
+    return this.surveysService.getDetail(id, Number(user.sub));
   }
 
   @Roles(RoleEnum.CUSTOMER)
@@ -51,12 +63,6 @@ export class SurveysController extends BaseController<Survey> {
   @Put(':id/permanently-deleted')
   markAsPermanentlyDeleted(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
     return this.surveysService.markAsPermanentlyDeleted(id, Number(user.sub));
-  }
-
-  @Roles(RoleEnum.CUSTOMER)
-  @Get(':id')
-  getDetail(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
-    return this.surveysService.getDetail(id, Number(user.sub));
   }
 
   @Roles(RoleEnum.CUSTOMER)
