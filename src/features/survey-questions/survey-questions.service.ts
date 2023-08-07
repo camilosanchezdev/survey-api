@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { BaseService } from '../base/base.service';
-import { SurveyQuestion } from './entities/survey-question.entity';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
+import { SurveyQuestionsRepository } from './survey-questions.repository';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class SurveyQuestionsService extends BaseService<SurveyQuestion> {
-  constructor(
-    @InjectRepository(SurveyQuestion)
-    private readonly engineRepo: Repository<SurveyQuestion>,
-  ) {
-    super(engineRepo);
+export class SurveyQuestionsService {
+  constructor(private readonly surveyQuestionsRepository: SurveyQuestionsRepository) {
+    //
+  }
+  async create(body) {
+    return this.surveyQuestionsRepository.create(body);
+  }
+  async findMany(body: Prisma.SurveyQuestionFindManyArgs) {
+    return this.surveyQuestionsRepository.findMany(body);
   }
 }

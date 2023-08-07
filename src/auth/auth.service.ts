@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { IToken } from './interfaces/token.interface';
-import { User } from 'src/features/users/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/features/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,7 @@ export class AuthService {
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (isMatch) {
-        const role = await user.role;
+        const role = user.roleId;
         const { password, ...res } = user;
         return { ...res, role };
       }

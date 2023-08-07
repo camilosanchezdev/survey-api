@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { SurveyQuestionsService } from './survey-questions.service';
 import { SurveyQuestionsController } from './survey-questions.controller';
-import { SurveyQuestion } from './entities/survey-question.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { SurveyQuestionsRepository } from './survey-questions.repository';
+import { PrismaModule } from 'src/database/prisma.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SurveyQuestion])],
+  imports: [PrismaModule],
   controllers: [SurveyQuestionsController],
-  providers: [SurveyQuestionsService],
-  exports: [SurveyQuestionsService],
+  providers: [SurveyQuestionsService, SurveyQuestionsRepository],
+  exports: [SurveyQuestionsService, SurveyQuestionsRepository],
 })
 export class SurveyQuestionsModule {}

@@ -1,50 +1,30 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { Role } from '../../roles/entities/role.entity';
-import { BaseEntity } from 'src/features/base/base.entity';
-import { Customer } from 'src/features/customers/entities/customer.entity';
-
-@Entity({ name: 'users' })
-export class User extends BaseEntity {
-  @PrimaryGeneratedColumn({ name: 'user_id' })
+// import { Role } from '../../roles/entities/role.entity';
+// import { BaseEntity } from 'src/features/base/base.entity';
+// import { Customer } from 'src/features/customers/entities/customer.entity';
+import { User } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
+export class UserEntity implements User {
+  @ApiProperty()
   id: number;
 
-  @Column({
-    nullable: false,
-    unique: true,
-  })
+  @ApiProperty()
   email: string;
 
-  @Column({
-    nullable: false,
-  })
+  @ApiProperty()
   password: string;
 
-  @Column({ type: 'int', name: 'role_id' })
-  roleId: number;
+  @ApiProperty()
+  roleId: number | null;
 
-  @ManyToOne(() => Role, (role) => role.users, { lazy: true })
-  @JoinColumn({ name: 'role_id' })
-  role: Promise<Role>;
+  @ApiProperty({ required: false, nullable: true })
+  customerId: number | null;
 
-  @OneToOne(() => Customer, (customer) => customer.user, { lazy: true })
-  customer?: Promise<Customer>;
+  @ApiProperty()
+  createdAt: Date;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdAt?: Date;
+  @ApiProperty()
+  updatedAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt?: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', default: null })
-  deletedAt?: Date;
+  @ApiProperty()
+  deleted: boolean;
 }

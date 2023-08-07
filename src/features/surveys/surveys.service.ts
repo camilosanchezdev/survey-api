@@ -1,44 +1,40 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { BaseService } from '../base/base.service';
-import { Survey } from './entities/survey.entity';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
 import { CreateSurveyInputDto } from './dtos/create-survey-input.dto';
 import { BaseResponse } from '../base/base.response';
 import { SurveyStatusEnum } from 'src/common/enums/survey-status.enum';
 import { SurveyQuestionsService } from '../survey-questions/survey-questions.service';
-import { Transactional } from 'typeorm-transactional';
 import { SurveyAnswersService } from '../survey-answers/survey-answers.service';
 import { v4 as uuidv4 } from 'uuid';
 import { IBaseQuery } from '../base/base-query.interface';
 import { BaseListResponse } from '../base/base-list.response';
+import { SurveysRepository } from './surveys.repository';
+import { UsersService } from '../users/users.service';
+import { CustomersService } from '../customers/customers.service';
+import { Survey } from '@prisma/client';
 
 @Injectable()
-export class SurveysService extends BaseService<Survey> {
+export class SurveysService {
   constructor(
-    @InjectRepository(Survey)
-    private readonly engineRepo: Repository<Survey>,
+    private readonly surveyRepository: SurveysRepository,
     private readonly surveyQuestionsService: SurveyQuestionsService,
     private readonly surveyAnswersService: SurveyAnswersService,
-  ) {
-    super(engineRepo);
-  }
-  async getList(customerId: number, query: IBaseQuery): Promise<BaseListResponse<Survey>> {
-    console.log('query', query);
-
-    const take = query.take || 10;
-    const skip = query.skip || 0;
+    private readonly customersService: CustomersService,
+  ) {}
+  async getList(userId: number, query: IBaseQuery): Promise<BaseListResponse<Survey>> {
+    const take = Number(query.take) || 10;
+    const skip = Number(query.skip) || 0;
     const statusId = query.filters;
 
     try {
-      const conditions = { customerId, ...(statusId && { surveyStatusId: Number(statusId) }) };
-      const total = await this.engineRepo.count({ where: conditions });
-      const res = await this.engineRepo.find({
+      const customer = await this.customersService.findOneByUserId(userId);
+      const conditions = { customerId: customer.id, ...(statusId && { surveyStatusId: Number(statusId) }) };
+      const total = await this.surveyRepository.count({ where: conditions });
+      const res = await this.surveyRepository.findMany({
         where: conditions,
-        select: ['id', 'title', 'description', 'surveyStatusId', 'createdAt'],
+        select: { id: true, title: true, description: true, surveyStatusId: true, createdAt: true },
         take,
         skip,
-        order: { createdAt: 'DESC' },
+        orderBy: { createdAt: 'desc' },
       });
 
       if (!res) throw new NotFoundException();
@@ -48,11 +44,11 @@ export class SurveysService extends BaseService<Survey> {
     }
   }
 
-  async getDetail(surveyId: number, customerId: number): Promise<Survey> {
+  async getDetail(surveyId: number, userId: number): Promise<Survey> {
     try {
-      const res = await this.engineRepo.findOne({
-        where: { id: surveyId, customerId },
-        relations: ['surveyQuestions', 'surveyQuestions.surveyAnswers'],
+      const customer = await this.customersService.findOneByUserId(userId);
+      const res = await this.surveyRepository.findFirst({
+        where: { id: surveyId, customerId: customer.id },
         select: {
           id: true,
           title: true,
@@ -60,12 +56,16 @@ export class SurveysService extends BaseService<Survey> {
           publicLink: true,
           surveyStatusId: true,
           surveyQuestions: {
-            id: true,
-            name: true,
-            multiple: true,
-            surveyAnswers: {
+            select: {
               id: true,
               name: true,
+              multiple: true,
+              surveyAnswers: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
             },
           },
         },
@@ -78,31 +78,25 @@ export class SurveysService extends BaseService<Survey> {
     }
   }
 
-  @Transactional()
-  async createCustom(body: CreateSurveyInputDto, customerId: number, surveyStatusId: number): Promise<BaseResponse> {
+  async createCustom(body: CreateSurveyInputDto, userId: number, surveyStatusId: number): Promise<BaseResponse> {
     try {
-      const surveyId = await this.create({
-        title: body.title,
-        description: body.description,
-        customerId,
-        surveyStatusId,
-        ...(surveyStatusId === SurveyStatusEnum.ACTIVE && { publicLink: this.generatePublicLink() }),
+      const customer = await this.customersService.findOneByUserId(userId);
+      await this.surveyRepository.create({
+        data: {
+          title: body.title,
+          description: body.description,
+          customerId: customer.id,
+          surveyStatusId,
+          ...(surveyStatusId === SurveyStatusEnum.ACTIVE && { publicLink: this.generatePublicLink() }),
+          surveyQuestions: {
+            create: body.surveyQuestions.map((question) => ({
+              name: question.name,
+              multiple: question.multiple,
+              surveyAnswers: { create: question.surveyAnswers.map((answer) => ({ name: answer.name })) },
+            })),
+          },
+        },
       });
-      for (let index = 0; index < body.surveyQuestions.length; index++) {
-        const question = body.surveyQuestions[index];
-        const newQuestionId = await this.surveyQuestionsService.create({
-          name: question.name,
-          multiple: question.multiple,
-          surveyId: surveyId,
-        });
-        for (let answerIndex = 0; answerIndex < question.surveyAnswers.length; answerIndex++) {
-          const answer = question.surveyAnswers[answerIndex];
-          await this.surveyAnswersService.create({
-            name: answer.name,
-            surveyQuestionId: newQuestionId,
-          });
-        }
-      }
 
       return { success: true };
     } catch (error) {
@@ -110,35 +104,33 @@ export class SurveysService extends BaseService<Survey> {
     }
   }
 
-  async createAsActive(body: CreateSurveyInputDto, customerId: number): Promise<BaseResponse> {
-    return this.createCustom(body, customerId, SurveyStatusEnum.ACTIVE);
+  async createAsActive(body: CreateSurveyInputDto, userId: number): Promise<BaseResponse> {
+    return this.createCustom(body, userId, SurveyStatusEnum.ACTIVE);
   }
 
-  async createAsDraft(body: CreateSurveyInputDto, customerId: number): Promise<BaseResponse> {
-    return this.createCustom(body, customerId, SurveyStatusEnum.DRAFT);
+  async createAsDraft(body: CreateSurveyInputDto, userId: number): Promise<BaseResponse> {
+    return this.createCustom(body, userId, SurveyStatusEnum.DRAFT);
   }
 
   async updateStatus(
     surveyId: number,
-    customerId: number,
+    userId: number,
     surveyStatusId: number,
     permanentlyDeleted = false,
   ): Promise<BaseResponse> {
     try {
-      const survey = await this.get(surveyId);
+      const customer = await this.customersService.findOneByUserId(userId);
+      const survey = await this.surveyRepository.findFirst({ where: { id: surveyId } });
 
-      if (survey.customerId !== customerId) throw new UnauthorizedException();
+      if (survey.customerId !== customer.id) throw new UnauthorizedException();
 
       survey.surveyStatusId = surveyStatusId;
 
       if (surveyStatusId === SurveyStatusEnum.ACTIVE) survey.publicLink = this.generatePublicLink();
 
-      await this.update(surveyId, survey);
+      if (permanentlyDeleted) survey.deleted = true;
 
-      if (permanentlyDeleted) {
-        const res = await this.delete(surveyId, survey);
-        return { success: res };
-      }
+      await this.surveyRepository.update({ where: { id: surveyId }, data: survey });
 
       return { success: true };
     } catch (error) {
@@ -146,8 +138,8 @@ export class SurveysService extends BaseService<Survey> {
     }
   }
 
-  async markAsActive(surveyId: number, customerId: number): Promise<BaseResponse> {
-    return this.updateStatus(surveyId, customerId, SurveyStatusEnum.ACTIVE);
+  async markAsActive(surveyId: number, userId: number): Promise<BaseResponse> {
+    return this.updateStatus(surveyId, userId, SurveyStatusEnum.ACTIVE);
   }
 
   async markAsCompleted(surveyId: number, customerId: number): Promise<BaseResponse> {
@@ -167,7 +159,29 @@ export class SurveysService extends BaseService<Survey> {
   }
   async getByPublicLink(publicLink: string): Promise<Survey> {
     try {
-      const res = await this.engineRepo.findOne({ where: { publicLink } });
+      const res = await this.surveyRepository.findFirst({
+        where: { publicLink },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          publicLink: true,
+          surveyStatusId: true,
+          surveyQuestions: {
+            select: {
+              id: true,
+              name: true,
+              multiple: true,
+              surveyAnswers: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
       if (!res) throw new NotFoundException();
       return res;
@@ -175,35 +189,35 @@ export class SurveysService extends BaseService<Survey> {
       throw new NotFoundException(error);
     }
   }
-  async getReport(surveyId: number, customerId: number): Promise<any> {
-    try {
-      const res = this.engineRepo
-        .createQueryBuilder('c')
-        .leftJoinAndSelect('c.surveyQuestions', 'surveyQuestions')
-        .leftJoinAndSelect('surveyQuestions.surveyAnswers', 'surveyAnswers')
-        .leftJoinAndSelect('surveyAnswers.surveyResponseAnswers', 'surveyResponseAnswers')
+  // async getReport(surveyId: number, customerId: number): Promise<any> {
+  //   try {
+  //     const res = this.engineRepo
+  //       .createQueryBuilder('c')
+  //       .leftJoinAndSelect('c.surveyQuestions', 'surveyQuestions')
+  //       .leftJoinAndSelect('surveyQuestions.surveyAnswers', 'surveyAnswers')
+  //       .leftJoinAndSelect('surveyAnswers.surveyResponseAnswers', 'surveyResponseAnswers')
 
-        .select([
-          'c.id',
-          'c.title',
-          'c.description',
-          'c.surveyStatusId',
-          'c.publicLink',
-          'surveyQuestions.id',
-          'surveyQuestions.name',
-          'surveyAnswers.id',
-          'surveyAnswers.name',
-          'surveyResponseAnswers.id',
-          'surveyResponseAnswers.surveyAnswerId',
-        ])
+  //       .select([
+  //         'c.id',
+  //         'c.title',
+  //         'c.description',
+  //         'c.surveyStatusId',
+  //         'c.publicLink',
+  //         'surveyQuestions.id',
+  //         'surveyQuestions.name',
+  //         'surveyAnswers.id',
+  //         'surveyAnswers.name',
+  //         'surveyResponseAnswers.id',
+  //         'surveyResponseAnswers.surveyAnswerId',
+  //       ])
 
-        .where(`c.id = ${surveyId} AND c.customerId = ${customerId}`)
-        .getOne();
+  //       .where(`c.id = ${surveyId} AND c.customerId = ${customerId}`)
+  //       .getOne();
 
-      if (!res) throw new NotFoundException();
-      return res;
-    } catch (error) {
-      throw new NotFoundException(error);
-    }
-  }
+  //     if (!res) throw new NotFoundException();
+  //     return res;
+  //   } catch (error) {
+  //     throw new NotFoundException(error);
+  //   }
+  // }
 }

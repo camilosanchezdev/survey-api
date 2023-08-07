@@ -1,15 +1,16 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Survey } from './entities/survey.entity';
 import { SurveysController } from './surveys.controller';
 import { SurveysService } from './surveys.service';
 import { SurveyQuestionsModule } from '../survey-questions/survey-questions.module';
 import { SurveyAnswersModule } from '../survey-answers/survey-answers.module';
+import { SurveysRepository } from './surveys.repository';
+import { PrismaModule } from 'src/database/prisma.module';
+import { CustomersModule } from '../customers/customers.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Survey]), SurveyQuestionsModule, SurveyAnswersModule],
+  imports: [SurveyQuestionsModule, SurveyAnswersModule, PrismaModule, CustomersModule],
   controllers: [SurveysController],
-  providers: [SurveysService],
-  exports: [SurveysService],
+  providers: [SurveysService, SurveysRepository],
+  exports: [SurveysService, SurveysRepository],
 })
 export class SurveysModule {}

@@ -1,35 +1,19 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { BaseEntity } from 'src/features/base/base.entity';
+import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 
-@Entity({ name: 'roles' })
-export class Role extends BaseEntity {
-  @PrimaryGeneratedColumn({ name: 'role_id' })
+export class RoleEntity implements Role {
+  @ApiProperty()
   id: number;
 
-  @Column({
-    nullable: false,
-    default: '',
-  })
+  @ApiProperty()
   name: string;
 
-  @OneToMany(() => User, (user) => user.role, { lazy: true })
-  users: Promise<User[]>;
+  @ApiProperty()
+  createdAt: Date;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdAt?: Date;
+  @ApiProperty()
+  updatedAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt?: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', default: null })
-  deletedAt?: Date;
+  @ApiProperty()
+  deleted: boolean;
 }

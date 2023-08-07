@@ -1,44 +1,22 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { BaseEntity } from 'src/features/base/base.entity';
-import { SurveyAnswer } from 'src/features/survey-answers/entities/survey-answer.entity';
-import { SurveyResponseQuestion } from 'src/features/survey-response-questions/entities/survey-response-question.entity';
+import { ApiProperty } from '@nestjs/swagger';
+import { SurveyResponseAnswer } from '@prisma/client';
 
-@Entity({ name: 'survey_response_answers' })
-export class SurveyResponseAnswer extends BaseEntity {
-  @PrimaryGeneratedColumn({ name: 'survey_response_answer_id' })
+export class SurveyResponseAnswerEntity implements SurveyResponseAnswer {
+  @ApiProperty()
   id: number;
 
-  @Column({ type: 'int', name: 'survey_answer_id' })
+  @ApiProperty()
   surveyAnswerId: number;
 
-  @ManyToOne(() => SurveyAnswer, (surveyAnswer) => surveyAnswer.surveyResponseAnswers, { lazy: true })
-  @JoinColumn({ name: 'survey_answer_id' })
-  surveyAnswer: Promise<SurveyAnswer>;
-
-  @Column({ type: 'int', name: 'survey_response_question_id' })
+  @ApiProperty()
   surveyResponseQuestionId: number;
 
-  @ManyToOne(() => SurveyResponseQuestion, (surveyResponseQuestion) => surveyResponseQuestion.surveyResponseAnswers, {
-    lazy: true,
-  })
-  @JoinColumn({ name: 'survey_response_question_id' })
-  surveyResponseQuestion: Promise<SurveyResponseQuestion>;
+  @ApiProperty()
+  createdAt: Date;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdAt?: Date;
+  @ApiProperty()
+  updatedAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt?: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', default: null })
-  deletedAt?: Date;
+  @ApiProperty()
+  deleted: boolean;
 }

@@ -1,53 +1,25 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { BaseEntity } from 'src/features/base/base.entity';
-import { Survey } from 'src/features/surveys/entities/survey.entity';
+import { ApiProperty } from '@nestjs/swagger';
+import { Customer } from '@prisma/client';
 
-@Entity({ name: 'customers' })
-export class Customer extends BaseEntity {
-  @PrimaryGeneratedColumn({ name: 'customer_id' })
+export class CustomerEntity implements Customer {
+  @ApiProperty()
   id: number;
 
-  @Column({
-    name: 'first_name',
-    nullable: false,
-    default: '',
-  })
+  @ApiProperty()
   firstName: string;
 
-  @Column({
-    name: 'last_name',
-    nullable: false,
-    default: '',
-  })
+  @ApiProperty()
   lastName: string;
 
-  @Column({ type: 'int', name: 'user_id' })
-  userId: number;
+  @ApiProperty()
+  userId: number | null;
 
-  @OneToOne(() => User, (user) => user.customer, { lazy: true })
-  @JoinColumn({ name: 'user_id' })
-  user?: Promise<User>;
+  @ApiProperty()
+  createdAt: Date;
 
-  @OneToMany(() => Survey, (survey) => survey.customer, { lazy: true })
-  surveys: Promise<Survey[]>;
+  @ApiProperty()
+  updatedAt: Date;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdAt?: Date;
-
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt?: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', default: null })
-  deletedAt?: Date;
+  @ApiProperty()
+  deleted: boolean;
 }
