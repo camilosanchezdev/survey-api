@@ -73,10 +73,4 @@ export class SurveysController {
   markAsPermanentlyDeleted(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
     return this.surveysService.markAsPermanentlyDeleted(Number(id), Number(user.sub));
   }
-
-  // @Roles(RoleEnum.CUSTOMER)
-  // @Get(':id/report')
-  // getReport(@Param('id') id: number, @CurrentUser() user: IToken): Promise<any> {
-  //   return this.surveysService.getReport(id, Number(user.sub));
-  // }
 }

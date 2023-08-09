@@ -5,15 +5,15 @@ import { BaseRepository } from '../base/base.respository';
 import { DelegateArgs, DelegateReturnTypes } from 'src/database/types';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 
-type SurveyResponseDelegate = Prisma.SurveyResponseDelegate<DefaultArgs>;
+type SurveyResponseAnswersDelegate = Prisma.SurveyResponseAnswerDelegate<DefaultArgs>;
 
 @Injectable()
-export class SurveyResponsesRepository extends BaseRepository<
-  SurveyResponseDelegate,
-  DelegateArgs<SurveyResponseDelegate>,
-  DelegateReturnTypes<SurveyResponseDelegate>
+export class SurveyResponseAnswersRepository extends BaseRepository<
+  SurveyResponseAnswersDelegate,
+  DelegateArgs<SurveyResponseAnswersDelegate>,
+  DelegateReturnTypes<SurveyResponseAnswersDelegate>
 > {
   constructor(private readonly prismaService: PrismaService) {
-    super(prismaService.surveyResponse);
+    super(prismaService.surveyResponseAnswer);
   }
 }

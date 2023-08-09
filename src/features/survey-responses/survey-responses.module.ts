@@ -13,11 +13,11 @@ import { PrismaModule } from 'src/database/prisma.module';
     PrismaModule,
     SurveyResponseAnswersModule,
     SurveyResponseQuestionsModule,
-    SurveysModule,
     SurveyQuestionsModule,
+    SurveysModule,
   ],
   controllers: [SurveyResponsesController],
   providers: [SurveyResponsesService, SurveyResponsesRepository],
-  exports: [SurveyResponsesRepository],
+  exports: [SurveyResponsesRepository, SurveyResponsesService],
 })
 export class SurveyResponsesModule {}

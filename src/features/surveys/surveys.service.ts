@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { IBaseQuery } from '../base/base-query.interface';
 import { BaseListResponse } from '../base/base-list.response';
 import { SurveysRepository } from './surveys.repository';
-import { UsersService } from '../users/users.service';
 import { CustomersService } from '../customers/customers.service';
 import { Survey } from '@prisma/client';
 
@@ -189,35 +188,4 @@ export class SurveysService {
       throw new NotFoundException(error);
     }
   }
-  // async getReport(surveyId: number, customerId: number): Promise<any> {
-  //   try {
-  //     const res = this.engineRepo
-  //       .createQueryBuilder('c')
-  //       .leftJoinAndSelect('c.surveyQuestions', 'surveyQuestions')
-  //       .leftJoinAndSelect('surveyQuestions.surveyAnswers', 'surveyAnswers')
-  //       .leftJoinAndSelect('surveyAnswers.surveyResponseAnswers', 'surveyResponseAnswers')
-
-  //       .select([
-  //         'c.id',
-  //         'c.title',
-  //         'c.description',
-  //         'c.surveyStatusId',
-  //         'c.publicLink',
-  //         'surveyQuestions.id',
-  //         'surveyQuestions.name',
-  //         'surveyAnswers.id',
-  //         'surveyAnswers.name',
-  //         'surveyResponseAnswers.id',
-  //         'surveyResponseAnswers.surveyAnswerId',
-  //       ])
-
-  //       .where(`c.id = ${surveyId} AND c.customerId = ${customerId}`)
-  //       .getOne();
-
-  //     if (!res) throw new NotFoundException();
-  //     return res;
-  //   } catch (error) {
-  //     throw new NotFoundException(error);
-  //   }
-  // }
 }
