@@ -15,6 +15,7 @@ A simple application to generate surveys.
 - Passport
 - UUID
 - TypeScript
+- Postgres
 
 ## Screenshots
 
